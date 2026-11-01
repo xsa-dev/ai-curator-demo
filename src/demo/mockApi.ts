@@ -118,3 +118,7 @@ export async function mockRequest<T>(url: string, options: RequestInit = {}, act
   store.setItem(DEMO_STORAGE_KEY, JSON.stringify(state));
   return structuredClone(result) as T;
 }
+export function filterMemories(memories: DemoMemory[], query: string) {
+  const needle = query.trim().toLocaleLowerCase('ru');
+  return memories.filter(m => `${m.key} ${m.value}`.toLocaleLowerCase('ru').includes(needle));
+}

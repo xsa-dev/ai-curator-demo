@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { mockRequest, DEMO_STORAGE_KEY, type DemoStorage, type DemoUser, type DemoMemory, type DemoMessage } from '@/demo/mockApi';
+import { mockRequest, filterMemories, DEMO_STORAGE_KEY, type DemoStorage, type DemoUser, type DemoMemory, type DemoMessage } from '@/demo/mockApi';
 let storage: DemoStorage;
 beforeEach(() => { const values = new Map<string, string>(); storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => { values.set(key, value); } }; });
 const call = <T>(url: string, actor = 'client_1', method = 'GET', body?: unknown) => mockRequest<T>(url, { method, ...(body ? { body: JSON.stringify(body) } : {}) }, actor, storage);
@@ -44,6 +44,15 @@ describe('Демонстрация без Docker, SQL и LLM-ключей', () =
     expect(await call('/api/memories', 'admin', 'DELETE', { targetUserId: 'client_2', key: 'goal' })).toEqual({ deleted: 1 });
     await expect(call('/api/memories?targetUserId=none', 'admin')).rejects.toMatchObject({ status: 404 });
     await expect(call('/api/memories?targetUserId=client_1', 'none')).rejects.toMatchObject({ status: 401 });
+  });
+  it('Новая функция: поиск по ключу и значению, регистру и пробелам', async () => {
+    const rows = await call<DemoMemory[]>('/api/memories?targetUserId=client_1');
+    expect(filterMemories(rows, '  PYTHON ')).toHaveLength(1);
+    expect(filterMemories(rows, 'preferred_format')).toHaveLength(1);
+    expect(filterMemories(rows, 'ВИДЕО')).toHaveLength(1);
+    expect(filterMemories(rows, '')).toHaveLength(rows.length);
+    expect(filterMemories(rows, 'не существует')).toHaveLength(0);
+    expect(rows).toHaveLength(3);
   });
   it('Повреждённое хранилище восстанавливает начальные данные', async () => {
     storage.setItem(DEMO_STORAGE_KEY, '{broken');

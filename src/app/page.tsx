@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { mockRequest } from "@/demo/mockApi";
+import { mockRequest, filterMemories } from "@/demo/mockApi";
 const mockMode = process.env.NEXT_PUBLIC_DEMO_MODE !== "false";
 type User = { id: string; username: string; role: "CLIENT" | "ADMIN" };
 type Memory = { id: string; key: string; value: string; updatedAt: string };
@@ -13,6 +13,7 @@ export default function Home() {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
+  const [search, setSearch] = useState("");
   const [key, setKey] = useState("");
   const [value, setValue] = useState("");
   const [busy, setBusy] = useState(false);
@@ -53,7 +54,7 @@ export default function Home() {
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [messages, busy]);
   function switchUser(id: string) {
     epoch.current++; setActor(id); setTarget(id); setSessionId(crypto.randomUUID());
-    setMessages([]); setMemories([]); setDraft(""); setKey(""); setValue(""); setError(""); setNotice("");
+    setMessages([]); setMemories([]); setSearch(""); setDraft(""); setKey(""); setValue(""); setError(""); setNotice("");
   }
   function newSession() {
     epoch.current++; setSessionId(crypto.randomUUID()); setMessages([]); setDraft(""); setError("");
@@ -111,7 +112,8 @@ export default function Home() {
       <aside className="card memory"><div className="card-head"><div><p className="eyebrow">ДОЛГОСРОЧНАЯ ПАМЯТЬ</p><h2>{isAdmin ? "Предпочтения пользователя" : "Мои сохранённые предпочтения"}</h2></div><span className="counter">{memories.length}</span></div>
         {isAdmin && <label className="target-label">Выберите пользователя<select disabled={busy} value={target} onChange={e => { setTarget(e.target.value); setKey(""); setValue(""); setNotice(""); }}>{users.map(u => <option key={u.id} value={u.id}>{u.username} · {u.role}</option>)}</select></label>}
         <p className="memory-hint">Эти сведения учитываются в новых диалогах. Вы можете изменить или удалить их в любой момент.</p>
-        <div className="facts">{memories.length === 0 && <p className="muted">Пока нет сохранённых сведений.</p>}{memories.map(m => <article className="fact" key={m.id}><div><code>{m.key}</code><p>{m.value}</p></div><div className="fact-actions"><button disabled={busy} aria-label={`Изменить ${m.key}`} onClick={() => { setKey(m.key); setValue(m.value); }}>Изменить</button><button disabled={busy} className="delete" aria-label={`Удалить ${m.key}`} onClick={() => remove(m)}>Удалить</button></div></article>)}</div>
+        <label className="target-label">Поиск по предпочтениям<input type="search" aria-label="Поиск по предпочтениям" placeholder="Найти по ключу или значению…" value={search} onChange={e => setSearch(e.target.value)} /></label>
+        <div className="facts">{memories.length > 0 && filterMemories(memories, search).length === 0 && <p className="muted">Ничего не найдено.</p>}{memories.length === 0 && <p className="muted">Пока нет сохранённых сведений.</p>}{filterMemories(memories, search).map(m => <article className="fact" key={m.id}><div><code>{m.key}</code><p>{m.value}</p></div><div className="fact-actions"><button disabled={busy} aria-label={`Изменить ${m.key}`} onClick={() => { setKey(m.key); setValue(m.value); }}>Изменить</button><button disabled={busy} className="delete" aria-label={`Удалить ${m.key}`} onClick={() => remove(m)}>Удалить</button></div></article>)}</div>
         <form className="memory-form" onSubmit={save}><h3>{memories.some(m => m.key === key) ? "Изменить предпочтение" : "Добавить предпочтение"}</h3><label>Ключ<input required maxLength={80} pattern="[a-zA-Z0-9_.\-]+" placeholder="Например, preferred_format" value={key} disabled={busy || !ready} onChange={e => setKey(e.target.value)}/></label><label>Значение<textarea required maxLength={2000} placeholder="Например, короткие видеоуроки" value={value} disabled={busy || !ready} onChange={e => setValue(e.target.value)}/></label><button disabled={busy || !ready || !key.trim() || !value.trim()} type="submit">Сохранить предпочтение</button>{key && <button type="button" className="text-button" onClick={() => { setKey(""); setValue(""); }}>Отменить редактирование</button>}</form>
       </aside>
     </div><footer className="page-footer">Куратор · Обучение, которое учитывает вас</footer>
