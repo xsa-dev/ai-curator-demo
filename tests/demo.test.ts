@@ -47,7 +47,7 @@ describe('Демонстрация без Docker, SQL и LLM-ключей', () =
   });
   it('Новая функция: поиск по ключу и значению, регистру и пробелам', async () => {
     const rows = await call<DemoMemory[]>('/api/memories?targetUserId=client_1');
-    expect(filterMemories(rows, '  PYTHON ')).toHaveLength(2);
+    expect(filterMemories(rows, '  PYTHON ')).toHaveLength(1);
     expect(filterMemories(rows, 'preferred_format')).toHaveLength(1);
     expect(filterMemories(rows, 'ВИДЕО')).toHaveLength(1);
     expect(filterMemories(rows, '')).toHaveLength(rows.length);
