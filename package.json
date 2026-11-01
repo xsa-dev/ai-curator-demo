@@ -1,0 +1,51 @@
+{
+  "name": "ai-curator-demo",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:dev": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "test": "vitest run --config vitest.demo.config.ts",
+    "test:coverage": "vitest run --config vitest.demo.config.ts --coverage",
+    "test:live": "RUN_LIVE_LLM=1 vitest run tests/live.test.ts",
+    "test:pglite": "node scripts/test-pglite.mjs",
+    "test:sql": "vitest run --config vitest.config.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "1.2.22",
+    "@ai-sdk/groq": "1.2.9",
+    "@prisma/client": "6.19.3",
+    "ai": "4.3.19",
+    "next": "16.4.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "5.0.5",
+    "dotenv": "^16.6.1",
+    "prisma": "6.19.3",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "5.0.5",
+    "@electric-sql/pglite": "0.5.10",
+    "@electric-sql/pglite-socket": "0.2.13"
+  },
+  "type": "module"
+}
